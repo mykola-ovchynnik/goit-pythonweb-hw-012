@@ -12,6 +12,7 @@ from src.services import auth
 from main import app
 
 DATABASE_TEST_URL = app_config.DATABASE_URL
+
 engine_test = create_async_engine(DATABASE_TEST_URL, poolclass=NullPool)
 AsyncSessionTest = async_sessionmaker(engine_test, expire_on_commit=False)
 

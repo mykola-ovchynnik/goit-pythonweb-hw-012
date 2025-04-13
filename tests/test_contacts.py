@@ -1,20 +1,22 @@
 import pytest
-from datetime import date
+from src.services.users import UserService
+from tests.test_helpers import TEST_USER, CONTACT_EXAMPLE, HEADERS_TEMPLATE
+
 
 @pytest.mark.asyncio
-async def test_create_contact(client):
-    login = await client.post("/auth/login", data={"username": "testuser", "password": "StrongPass123"})
+async def test_create_contact(client, db_session):
+    await client.post("/auth/register", json=TEST_USER)
+    user_service = UserService(db_session)
+    await user_service.confirm_email(TEST_USER["email"])
+    login = await client.post(
+        "/auth/login",
+        data={"username": TEST_USER["username"], "password": TEST_USER["password"]},
+    )
     token = login.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
 
-    contact = {
-        "first_name": "Jane",
-        "last_name": "Doe",
-        "email": "jane@example.com",
-        "phone_number": "1234567890",
-        "birthday": str(date.today()),
-        "additional_info": "Friend from school"
-    }
-    response = await client.post("/contacts/", json=contact, headers=headers)
+    # Тест створення контакту
+    response = await client.post(
+        "/contacts/", json=CONTACT_EXAMPLE, headers=HEADERS_TEMPLATE(token)
+    )
     assert response.status_code == 200
-    assert response.json()["email"] == contact["email"]
+    assert response.json()["email"] == CONTACT_EXAMPLE["email"]
