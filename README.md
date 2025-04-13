@@ -4,10 +4,14 @@ A complete **Contacts Management RESTful API** built with **FastAPI**, supportin
 
 - 🔐 User registration, login, JWT authentication
 - ✅ Email confirmation with token verification
-- 📇 Contact CRUD operations
-- 🔍 Contact search and upcoming birthday queries
+- 🔁 Password reset via email
+- 📇 Contact CRUD operations with filtering and search
+- 🎂 Upcoming birthday lookup
 - 📤 Avatar uploads to Cloudinary
-- 🐳 Dockerized setup
+- 🚀 Gravatar fallback for avatars
+- 🧱 Redis-based caching
+- ⛔ Request rate-limiting
+- 🐳 Dockerized deployment
 
 ---
 
@@ -16,8 +20,8 @@ A complete **Contacts Management RESTful API** built with **FastAPI**, supportin
 ### **Clone the repository & navigate to it**
 
 ```bash
-git clone https://github.com/mykola-ovchynnik/goit-pythonweb-hw-10.git
-cd goit-pythonweb-hw-10
+git clone https://github.com/mykola-ovchynnik/goit-pythonweb-hw-12.git
+cd goit-pythonweb-hw-12
 ```
 
 
@@ -27,6 +31,8 @@ Create a `.env`  in the root of the project:
 
 ```ini
 DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/contacts
+REDIS_URL=redis://default:your_password@localhost:6379
+
 JWT_SECRET=your_jwt_secret
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_TIME=3600
@@ -51,17 +57,18 @@ docker-compose up --build
 ```
 
 💡 On container startup, the API will:
-- Apply Alembic migrations
+- Apply Alembic migrations:
+```bash
+alembic revision --autogenerate -m "init"
+
+alembic upgrade head
+```
 - Start on http://localhost:8000
 
 🧪 Poetry Development Mode
 For local development outside Docker:
 ```bash
 poetry install
-
-alembic revision --autogenerate -m "your_migration_message"
-
-alembic upgrade head
 
 poetry run uvicorn src.main:app --reload
 ```
@@ -70,12 +77,14 @@ poetry run uvicorn src.main:app --reload
 ### 🚀 **API Access**
 🔑 Auth
 
-|Method|Endpoint|Description|
-|---|---|---|
-|POST|/auth/register|Register user|
-|POST|/auth/login|Login and get JWT|
-|GET|/auth/confirm_email/{token}|Email verification|
-|POST|/auth/request_email|Re-send confirmation email|
+| Method |Endpoint|Description|
+|--------|---|---|
+| POST   |/auth/register|Register user|
+| POST   |/auth/login|Login and get JWT|
+| GET    |/auth/confirm_email/{token}|Email verification|
+| POST   |/auth/request_email|Re-send confirmation email|
+|  POST  | /auth/request-password-reset|Request password reset|
+| POST   |/auth/reset-password|Confirm password reset|
 
 🙋‍♂️ Users
 
@@ -96,6 +105,14 @@ poetry run uvicorn src.main:app --reload
 |GET|/contacts/search/|Search contacts by name/email|
 |GET|/contacts/birthdays/|Upcoming birthdays within a given number of days|
 
+### 🧠 Features & Middleware
+- Rate Limiting: Global per-endpoint rate limit using SlowAPI
+- Validation & Error Handling: Centralized exception management
+- Redis Caching: Logged-in user info cached via Redis
+- Gravatar Support: Auto-avatar generation fallback
+- Asynchronous SQLAlchemy: Non-blocking DB operations
+
+
 ### 📜 **API Docs**
 - Swagger UI: http://localhost:8000/docs
 - ReDoc UI: http://localhost:8000/redoc
@@ -105,7 +122,7 @@ poetry run uvicorn src.main:app --reload
 GET /healthcheck
 ```
 
-✨ Technologies Used
+### ✨ Technologies Used
 - FastAPI
 - PostgreSQL
 - SQLAlchemy (Async)
