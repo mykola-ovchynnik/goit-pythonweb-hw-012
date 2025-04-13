@@ -3,7 +3,13 @@ from dotenv import load_dotenv
 from pydantic import EmailStr, ConfigDict
 from pydantic_settings import BaseSettings
 
-load_dotenv()
+# ENV = os.getenv("ENV", "development")
+ENV = "test"
+
+if ENV == "test":
+    load_dotenv(".env.test")
+else:
+    load_dotenv()
 
 
 class Config(BaseSettings):
