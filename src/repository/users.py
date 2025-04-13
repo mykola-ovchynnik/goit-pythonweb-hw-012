@@ -1,3 +1,4 @@
+from pydantic import EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -43,7 +44,7 @@ class UserRepository:
         user = await self.db.execute(stmt)
         return user.scalar_one_or_none()
 
-    async def get_user_by_email(self, email: str) -> User | None:
+    async def get_user_by_email(self, email: EmailStr) -> User | None:
         """
         Retrieve a user by their email address.
 
@@ -78,7 +79,7 @@ class UserRepository:
         await self.db.refresh(user)
         return user
 
-    async def confirm_email(self, email: str) -> None:
+    async def confirm_email(self, email: EmailStr) -> None:
         """
         Mark a user's email as confirmed.
 
@@ -92,7 +93,7 @@ class UserRepository:
         user.confirmed = True
         await self.db.commit()
 
-    async def update_avatar_url(self, email: str, url: str) -> User:
+    async def update_avatar_url(self, email: EmailStr, url: str) -> User:
         """
         Update the avatar URL for a user.
 
@@ -109,7 +110,7 @@ class UserRepository:
         await self.db.refresh(user)
         return user
 
-    async def update_password(self, email: str, hashed_password: str):
+    async def update_password(self, email: EmailStr, hashed_password: str):
         user = await self.get_user_by_email(email)
         user.hashed_password = hashed_password
         await self.db.commit()

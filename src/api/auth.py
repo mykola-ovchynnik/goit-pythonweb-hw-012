@@ -3,7 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, 
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas import UserCreate, Token, User, RequestEmail, PasswordResetConfirm
+from src.schemas import (
+    UserCreate,
+    Token,
+    User,
+    RequestEmail,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+)
 from src.services.auth import create_access_token, Hash, get_email_from_token
 from src.services.users import UserService
 from src.services.email import send_email
