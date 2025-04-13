@@ -59,7 +59,9 @@ For local development outside Docker:
 ```bash
 poetry install
 
-poetry run alembic upgrade head
+alembic revision --autogenerate -m "your_migration_message"
+
+alembic upgrade head
 
 poetry run uvicorn src.main:app --reload
 ```
