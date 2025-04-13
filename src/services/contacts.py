@@ -59,14 +59,20 @@ class ContactService:
         self, contact_id: int, contact_data: ContactUpdate, user: User
     ):
         try:
-            return await self.repo.update_contact(contact_id, contact_data, user)
+            contact = await self.repo.update_contact(contact_id, contact_data, user)
+            if contact is None:
+                raise HTTPException(status_code=404, detail="Contact not found")
+            return contact
         except IntegrityError as e:
             await self.repo.db.rollback()
             _handle_integrity_error(e)
 
     async def delete_contact(self, contact_id: int, user: User):
         try:
-            return await self.repo.delete_contact(contact_id, user)
+            contact = await self.repo.delete_contact(contact_id, user)
+            if contact is None:
+                raise HTTPException(status_code=404, detail="Contact not found")
+            return contact
         except IntegrityError as e:
             await self.repo.db.rollback()
             _handle_integrity_error(e)

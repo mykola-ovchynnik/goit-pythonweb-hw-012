@@ -30,7 +30,11 @@ async def prepare_test_db():
 @pytest_asyncio.fixture()
 async def db_session():
     async with AsyncSessionTest() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.rollback()
+            await session.close()
 
 
 @pytest_asyncio.fixture()

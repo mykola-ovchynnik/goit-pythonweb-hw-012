@@ -111,7 +111,7 @@ class ContactRepository:
     ) -> Optional[Contact]:
         contact = await self.get_contact_by_id(contact_id, user)
         if contact is None:
-            raise ValueError("Contact not found")
+            return None
 
         for key, value in contact_data.model_dump(exclude_unset=True).items():
             setattr(contact, key, value)
@@ -123,7 +123,7 @@ class ContactRepository:
     async def delete_contact(self, contact_id: int, user: User) -> Optional[Contact]:
         contact = await self.get_contact_by_id(contact_id, user)
         if contact is None:
-            raise ValueError("Contact not found")
+            return None
 
         await self.db.delete(contact)
         await self.db.commit()
