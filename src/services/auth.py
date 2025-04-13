@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta, UTC
 from typing import Optional
 
@@ -6,7 +7,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError, jwt
-import aioredis
+import redis.asyncio as redis
 
 from src.database.db import get_db
 from src.conf.config import config as app_config
@@ -25,7 +26,7 @@ class Hash:
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-redis = aioredis.from_url(app_config.REDIS_URL, decode_responses=True)
+redis_client = redis.Redis.from_url(app_config.REDIS_URL, decode_responses=True)
 
 
 async def create_access_token(data: dict, expires_delta: Optional[int] = None):
@@ -62,9 +63,9 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    cached_user = await redis.get(f"user:{username}")
+    cached_user = await redis_client.get(f"user:{username}")
     if cached_user:
-        return cached_user
+        return json.loads(cached_user)
 
     user_service = UserService(db)
     user = await user_service.get_user_by_username(username)
@@ -72,7 +73,13 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
 
-    await redis.set(f"user:{username}", user, ex=3600)
+    user_dict = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "avatar": user.avatar
+    }
+    await redis_client.set(f"user:{username}", json.dumps(user_dict), ex=3600)
 
     return user
 
