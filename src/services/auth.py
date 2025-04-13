@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError, jwt
+import aioredis
 
 from src.database.db import get_db
 from src.conf.config import config as app_config
@@ -23,6 +24,8 @@ class Hash:
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+redis = aioredis.from_url(app_config.REDIS_URL, decode_responses=True)
 
 
 async def create_access_token(data: dict, expires_delta: Optional[int] = None):
@@ -56,14 +59,21 @@ async def get_current_user(
         username = payload["sub"]
         if username is None:
             raise credentials_exception
-    except JWTError as e:
+    except JWTError:
         raise credentials_exception
+
+    cached_user = await redis.get(f"user:{username}")
+    if cached_user:
+        return cached_user
 
     user_service = UserService(db)
     user = await user_service.get_user_by_username(username)
 
     if user is None:
         raise credentials_exception
+
+    await redis.set(f"user:{username}", user, ex=3600)
+
     return user
 
 
